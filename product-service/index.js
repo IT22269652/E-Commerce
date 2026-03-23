@@ -51,33 +51,7 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// ========== SAMPLE DATA ==========
-let products = [
-  {
-    id: 1,
-    name: 'Laptop',
-    price: 1200,
-    category: 'Electronics',
-    stock: 10,
-    imageUrl: null,
-  },
-  {
-    id: 2,
-    name: 'Phone',
-    price: 800,
-    category: 'Electronics',
-    stock: 25,
-    imageUrl: null,
-  },
-  {
-    id: 3,
-    name: 'T-Shirt',
-    price: 20,
-    category: 'Clothing',
-    stock: 100,
-    imageUrl: null,
-  },
-];
+let products = [];
 
 // ========== ROUTES ==========
 

@@ -5,7 +5,7 @@
 This project implements a **Microservices Architecture** for an E-Commerce platform. Each microservice handles one business domain and runs independently on its own port. All services are accessible through a single **API Gateway** on port `3000`.
 
 The system consists of:
-- **4 Independent Microservices** — Product, Customer, Order, Payment
+- **5 Independent Microservices** — Product, Customer, Order, Payment, Delivery
 - **1 API Gateway** — Routes all traffic through a single port
 - **Swagger UI** — Auto-generated API documentation for every service
 
@@ -23,18 +23,20 @@ The system consists of:
                     ┌──────────▼──────────┐
                     │     API GATEWAY     │
                     │  (Port 3000)        │
-                    └──┬──┬──┬──┬─────────┘
-                       │  │  │  │
-           ┌───────────┘  │  │  └───────────┐
-           │         ┌────┘  └────┐          │
-           ▼         ▼            ▼          ▼
-    ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-    │ Product  │ │ Customer │ │  Order   │ │ Payment  │
-    │ Service  │ │ Service  │ │ Service  │ │ Service  │
-    │ :3001    │ │ :3002    │ │ :3003    │ │ :3004    │
-    └──────────┘ └──────────┘ └──────────┘ └──────────┘
-
+                    └──┬──┬──┬──┬──┬──────┘
+                       │  │  │  │  │
+           ┌───────────┘  │  │  │  └─────────────┐
+           │         ┌────┘  │  └────┐            │
+           │         │    ┌──┘       │            │
+           ▼         ▼    ▼          ▼            ▼
+    ┌──────────┐ ┌────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
+    │ Product  │ │Customer│ │  Order   │ │ Payment  │ │ Delivery │
+    │ Service  │ │Service │ │ Service  │ │ Service  │ │ Service  │
+    │ :3001    │ │ :3002  │ │ :3003    │ │ :3004    │ │ :3005    │
+    └──────────┘ └────────┘ └──────────┘ └──────────┘ └──────────┘
 ```
+
+---
 
 ## ⚙️ Installation & Setup
 
@@ -67,7 +69,14 @@ npm init -y
 npm install express swagger-ui-express swagger-jsdoc
 ```
 
-### 5. API Gateway
+### 5. Delivery Service
+```bash
+cd delivery-service
+npm init -y
+npm install express swagger-ui-express swagger-jsdoc
+```
+
+### 6. API Gateway
 ```bash
 cd api-gateway
 npm init -y
@@ -77,6 +86,8 @@ npm install express http-proxy-middleware
 ---
 
 ## ▶️ Running the Services
+
+> ⚠️ **Important:** Start all 5 microservices **before** starting the API Gateway.
 
 ### Terminal 1 — Product Service
 ```bash
@@ -106,7 +117,14 @@ node index.js
 # ✅ Payment Service running on http://localhost:3004
 ```
 
-### Terminal 5 — API Gateway (start this LAST)
+### Terminal 5 — Delivery Service
+```bash
+cd delivery-service
+node index.js
+# ✅ Delivery Service running on http://localhost:3005
+```
+
+### Terminal 6 — API Gateway (start this LAST)
 ```bash
 cd api-gateway
 node index.js
@@ -123,7 +141,9 @@ node index.js
 | `localhost:3000/customers` | `localhost:3002` | Customer Service |
 | `localhost:3000/orders` | `localhost:3003` | Order Service |
 | `localhost:3000/payments` | `localhost:3004` | Payment Service |
+| `localhost:3000/deliveries` | `localhost:3005` | Delivery Service |
 
+---
 
 ## 📄 Swagger Documentation
 
@@ -133,6 +153,7 @@ node index.js
 | Customer Service | http://localhost:3002/api-docs |
 | Order Service | http://localhost:3003/api-docs |
 | Payment Service | http://localhost:3004/api-docs |
+| Delivery Service | http://localhost:3005/api-docs |
 
 ---
 
@@ -145,4 +166,4 @@ node index.js
 | Customer Service | `3002` | Runs independently |
 | Order Service | `3003` | Runs independently |
 | Payment Service | `3004` | Runs independently |
-
+| Delivery Service | `3005` | Runs independently |

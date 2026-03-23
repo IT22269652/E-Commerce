@@ -235,6 +235,7 @@ app.put('/products/:id', upload.single('image'), (req, res) => {
 
 // -----------------------------------------
 
+
 /**
  * @swagger
  * /products/{id}:

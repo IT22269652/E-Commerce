@@ -18,8 +18,8 @@ exports.register = async (req, res) => {
       email, 
       password: hashedPassword, 
       phone,
-      addresses, // Expecting array of {type, line1, city}
-      cards      // Expecting array of {cardNumber, expiry, cardHolder}
+      addresses,
+      cards
     });
 
     res.status(201).json({ 

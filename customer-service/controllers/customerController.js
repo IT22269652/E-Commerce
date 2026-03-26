@@ -8,8 +8,21 @@ exports.register = async (req, res) => {
     const { name, email, password, phone, addresses, cards } = req.body;
 
     // Check if user already exists
-    const existingUser = await Customer.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "User already exists" });
+    const existingUser = await Customer.findOne({ 
+        $or: [{ email: email }, { phone: phone }]
+     });
+    if (existingUser) {
+      const isEmailTaken = existingUser.email === email;
+      const isPhoneTaken = existingUser.phone === phone;
+
+      if (isEmailTaken && isPhoneTaken) {
+        return res.status(400).json({ message: "Both email and phone number are already registered." });
+      } else if (isEmailTaken) {
+        return res.status(400).json({ message: "This email is already in use." });
+      } else if (isPhoneTaken) {
+        return res.status(400).json({ message: "This phone number is already in use." });
+      }
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     

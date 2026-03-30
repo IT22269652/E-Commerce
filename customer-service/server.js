@@ -5,45 +5,66 @@ require('dotenv').config();
 
 const express = require('express');
 const mongoose = require('mongoose');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 const customerController = require('./controllers/customerController');
 const auth = require('./middleware/auth');
 
 const app = express();
-
 app.use(express.json());
 
-// --- Database Connection ---
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Customer API',
+      version: '1.0.0',
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+      schemas: {
+        CustomerRequest: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            email: { type: 'string' },
+            password: { type: 'string' },
+            phone: { type: 'string' }
+          }
+        }
+      }
+    },
+  },
+  apis: ['./controllers/customerController.js'], 
+};
+
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Customer Database Connected Successfully"))
-  .catch(err => {
-    console.error("❌ Database Connection Error:", err.message);
-    // process.exit(1);
-  });
+  .catch(err => console.error("❌ Database Connection Error:", err.message));
 
 
-//PUBLIC ROUTES
-app.post('/register', customerController.register);
-app.post('/login', customerController.login);
+// PUBLIC ROUTES
+app.post('/customer/register', customerController.register);
+app.post('/customer/login', customerController.login);
 
-//PROTECTED ROUTES
-app.get('/:id', auth, customerController.getProfile);
-app.put('/:id', auth, customerController.updateProfile);
-app.delete('/:id', auth, customerController.deleteCustomer);
+// PROTECTED ROUTES
+app.get('/customer/:id', auth, customerController.getProfile);
+app.put('/customer/:id', auth, customerController.updateProfile);
+app.delete('/customer/:id', auth, customerController.deleteCustomer);
 
-// --- Health Check ---
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'Customer Service is UP' });
-});
+app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
-// --- Global Error Handler ---
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong on our end!' });
-});
-
-// --- Server Start ---
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`🚀 Customer Service active on port ${PORT}`);
-  console.log(`🔗 Linked to Gateway at http://localhost:3000/customer`);
+  console.log(`📑 Swagger Dashboard: http://localhost:${PORT}/api-docs`);
 });

@@ -69,7 +69,6 @@ app.get('/', (req, res) => {
 // ── Start server
 app.listen(3000, () => {
   console.log('✅ API Gateway running on http://localhost:3000');
-
   console.log('   /products   → Port 3001');
   console.log('   /customers  → Port 3002');
   console.log('   /orders     → Port 3003');

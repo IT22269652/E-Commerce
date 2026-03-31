@@ -14,13 +14,46 @@ const auth = require('./middleware/auth');
 const app = express();
 app.use(express.json());
 
+// const swaggerOptions = {
+//   definition: {
+//     openapi: '3.0.0',
+//     info: {
+//       title: 'Customer API',
+//       version: '1.0.0',
+//     },
+//     components: {
+//       securitySchemes: {
+//         bearerAuth: {
+//           type: 'http',
+//           scheme: 'bearer',
+//           bearerFormat: 'JWT',
+//         },
+//       },
+//       schemas: {
+//         CustomerRequest: {
+//           type: 'object',
+//           properties: {
+//             name: { type: 'string' },
+//             email: { type: 'string' },
+//             password: { type: 'string' },
+//             phone: { type: 'string' }
+//           }
+//         }
+//       }
+//     },
+//   },
+//   apis: ['./controllers/customerController.js'], 
+// };
+
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
       title: 'Customer API',
       version: '1.0.0',
+      description: 'Customer Management Microservice'
     },
+    servers: [{ url: 'http://localhost:3002' }], // Direct access for testing
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -41,8 +74,71 @@ const swaggerOptions = {
         }
       }
     },
+    // --- THIS SECTION ADDS THE BUTTONS ---
+    paths: {
+      '/register': {
+        post: {
+          summary: 'Register a new customer',
+          tags: ['Auth'],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CustomerRequest' }
+              }
+            }
+          },
+          responses: { 201: { description: 'Created' } }
+        }
+      },
+      '/login': {
+        post: {
+          summary: 'User Login',
+          tags: ['Auth'],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    email: { type: 'string' },
+                    password: { type: 'string' }
+                  }
+                }
+              }
+            }
+          },
+          responses: { 200: { description: 'OK' } }
+        }
+      },
+      '/{id}': {
+        get: {
+          summary: 'Get customer profile',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Success' } }
+        },
+        put: {
+          summary: 'Update customer profile',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CustomerRequest' } } }
+          },
+          responses: { 200: { description: 'Updated' } }
+        },
+        delete: {
+          summary: 'Delete customer account',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Deleted' } }
+        }
+      }
+    }
   },
-  apis: ['./controllers/customerController.js'], 
+  apis: [], // Keep this empty to avoid the YAML indentation errors from earlier
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);

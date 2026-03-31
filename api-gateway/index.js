@@ -51,12 +51,6 @@ app.use('/deliveries', createProxyMiddleware({
   changeOrigin: true,
 }));
 
-// ── Route /customer → Customer Service (Port 3002)
-app.use('/customer', createProxyMiddleware({
-  target: 'http://localhost:3002',
-  changeOrigin: true,
-}));
-
 // ── Root health check
 app.get('/', (req, res) => {
   res.json({

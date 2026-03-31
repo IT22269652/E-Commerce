@@ -45,6 +45,7 @@ app.use(express.json());
 //   apis: ['./controllers/customerController.js'], 
 // };
 
+// --- server.js ---
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -53,7 +54,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'Customer Management Microservice'
     },
-    servers: [{ url: 'http://localhost:3002' }], // Direct access for testing
+    servers: [{ url: 'http://localhost:3002' }], 
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -74,9 +75,9 @@ const swaggerOptions = {
         }
       }
     },
-    // --- THIS SECTION ADDS THE BUTTONS ---
     paths: {
-      '/register': {
+      // ✅ ADDED /customer PREFIX TO ALL PATHS
+      '/customer/register': {
         post: {
           summary: 'Register a new customer',
           tags: ['Auth'],
@@ -90,7 +91,7 @@ const swaggerOptions = {
           responses: { 201: { description: 'Created' } }
         }
       },
-      '/login': {
+      '/customer/login': {
         post: {
           summary: 'User Login',
           tags: ['Auth'],
@@ -110,7 +111,7 @@ const swaggerOptions = {
           responses: { 200: { description: 'OK' } }
         }
       },
-      '/{id}': {
+      '/customer/{id}': { // ✅ Matches app.get('/customer/:id')
         get: {
           summary: 'Get customer profile',
           tags: ['Profile'],
@@ -138,7 +139,7 @@ const swaggerOptions = {
       }
     }
   },
-  apis: [], // Keep this empty to avoid the YAML indentation errors from earlier
+  apis: [], 
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);

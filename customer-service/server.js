@@ -14,38 +14,6 @@ const auth = require('./middleware/auth');
 const app = express();
 app.use(express.json());
 
-// const swaggerOptions = {
-//   definition: {
-//     openapi: '3.0.0',
-//     info: {
-//       title: 'Customer API',
-//       version: '1.0.0',
-//     },
-//     components: {
-//       securitySchemes: {
-//         bearerAuth: {
-//           type: 'http',
-//           scheme: 'bearer',
-//           bearerFormat: 'JWT',
-//         },
-//       },
-//       schemas: {
-//         CustomerRequest: {
-//           type: 'object',
-//           properties: {
-//             name: { type: 'string' },
-//             email: { type: 'string' },
-//             password: { type: 'string' },
-//             phone: { type: 'string' }
-//           }
-//         }
-//       }
-//     },
-//   },
-//   apis: ['./controllers/customerController.js'], 
-// };
-
-// --- server.js ---
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -76,8 +44,7 @@ const swaggerOptions = {
       }
     },
     paths: {
-      // ✅ ADDED /customer PREFIX TO ALL PATHS
-      '/customer/register': {
+      '/customers/register': {
         post: {
           summary: 'Register a new customer',
           tags: ['Auth'],
@@ -91,7 +58,7 @@ const swaggerOptions = {
           responses: { 201: { description: 'Created' } }
         }
       },
-      '/customer/login': {
+      '/customers/login': {
         post: {
           summary: 'User Login',
           tags: ['Auth'],
@@ -111,7 +78,7 @@ const swaggerOptions = {
           responses: { 200: { description: 'OK' } }
         }
       },
-      '/customer/{id}': { // ✅ Matches app.get('/customer/:id')
+      '/customers/{id}': {
         get: {
           summary: 'Get customer profile',
           tags: ['Profile'],
@@ -151,13 +118,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 
 // PUBLIC ROUTES
-app.post('/customer/register', customerController.register);
-app.post('/customer/login', customerController.login);
+app.post('/customers/register', customerController.register);
+app.post('/customers/login', customerController.login);
 
 // PROTECTED ROUTES
-app.get('/customer/:id', auth, customerController.getProfile);
-app.put('/customer/:id', auth, customerController.updateProfile);
-app.delete('/customer/:id', auth, customerController.deleteCustomer);
+app.get('/customers/:id', auth, customerController.getProfile);
+app.put('/customers/:id', auth, customerController.updateProfile);
+app.delete('/customers/:id', auth, customerController.deleteCustomer);
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 

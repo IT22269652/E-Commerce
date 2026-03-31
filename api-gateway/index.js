@@ -51,21 +51,11 @@ app.use('/deliveries', createProxyMiddleware({
   changeOrigin: true,
 }));
 
-// ── Route /customer → Customer Service (Port 3002)
-app.use('/customer', createProxyMiddleware({
-  target: 'http://localhost:3002',
-  changeOrigin: true,
-}));
-
 // ── Root health check
 app.get('/', (req, res) => {
   res.json({
     message: 'API Gateway is running!',
     routes: {
-
-      products:  'http://localhost:3000/products',
-      customer: 'http://localhost:3000/customer',
-
       products: 'http://localhost:3000/products',
       customers: 'http://localhost:3000/customers',
       orders: 'http://localhost:3000/orders',
@@ -79,9 +69,6 @@ app.get('/', (req, res) => {
 // ── Start server
 app.listen(3000, () => {
   console.log('✅ API Gateway running on http://localhost:3000');
-
-  console.log('   /products  → Port 3001');
-  console.log('   /customer  → Port 3002');
 
   console.log('   /products   → Port 3001');
   console.log('   /customers  → Port 3002');

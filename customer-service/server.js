@@ -1,7 +1,8 @@
 const dns = require('node:dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']); 
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
 const mongoose = require('mongoose');
@@ -63,7 +64,7 @@ app.delete('/customer/:id', auth, customerController.deleteCustomer);
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.CUSTOMER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`🚀 Customer Service active on port ${PORT}`);
   console.log(`📑 Swagger Dashboard: http://localhost:${PORT}/api-docs`);

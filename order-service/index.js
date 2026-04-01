@@ -5,6 +5,11 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const app = express();
 app.use(express.json());
 
+const parseOrderId = (id) => {
+  const parsed = parseInt(id, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
 // ========== SWAGGER SETUP ==========
 const swaggerOptions = {
   definition: {
@@ -60,8 +65,12 @@ app.get('/orders', (req, res) => {
  *         description: Order not found
  */
 app.get('/orders/:id', (req, res) => {
-  const order = orders.find(o => o.id === parseInt(req.params.id));
+  const id = parseOrderId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: 'Invalid order ID' });
+  }
 
+  const order = orders.find(o => o.id === id);
   if (!order) {
     return res.status(404).json({ message: 'Order not found' });
   }
@@ -93,6 +102,10 @@ app.get('/orders/:id', (req, res) => {
  */
 app.post('/orders', (req, res) => {
   const { productId, quantity } = req.body;
+
+  if (productId === undefined || quantity === undefined) {
+    return res.status(400).json({ message: 'productId and quantity are required' });
+  }
 
   const newOrder = {
     id: orders.length + 1,
@@ -135,14 +148,17 @@ app.post('/orders', (req, res) => {
  *         description: Order not found
  */
 app.put('/orders/:id', (req, res) => {
-  const order = orders.find(o => o.id === parseInt(req.params.id));
+  const id = parseOrderId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: 'Invalid order ID' });
+  }
 
+  const order = orders.find(o => o.id === id);
   if (!order) {
     return res.status(404).json({ message: 'Order not found' });
   }
 
   order.status = req.body.status || order.status;
-
   res.json(order);
 });
 
@@ -166,8 +182,12 @@ app.put('/orders/:id', (req, res) => {
  *         description: Order not found
  */
 app.delete('/orders/:id', (req, res) => {
-  const index = orders.findIndex(o => o.id === parseInt(req.params.id));
+  const id = parseOrderId(req.params.id);
+  if (id === null) {
+    return res.status(400).json({ message: 'Invalid order ID' });
+  }
 
+  const index = orders.findIndex(o => o.id === id);
   if (index === -1) {
     return res.status(404).json({ message: 'Order not found' });
   }

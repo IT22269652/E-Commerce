@@ -7,11 +7,13 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
+const cors = require("cors");
 const swaggerJsdoc = require('swagger-jsdoc');
 const customerController = require('./controllers/customerController');
 const auth = require('./middleware/auth');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const swaggerOptions = {

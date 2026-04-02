@@ -7,11 +7,13 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const productController = require('./controllers/productController');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // ========== SERVE UPLOADED IMAGES ==========
@@ -64,7 +66,18 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
 // ========== START SERVER ==========
 const PORT = process.env.PRODUCT_PORT || 3001;
+
 app.listen(PORT, () => {
   console.log(`🚀 Product Service active on port ${PORT}`);
   console.log(`📑 Swagger Dashboard: http://localhost:${PORT}/api-docs`);
+
+  // ===== PRINT ENDPOINTS =====
+  console.log('\n📌 Available API Endpoints:');
+  console.log('----------------------------------------');
+  console.log('GET    /products        - Get all products');
+  console.log('GET    /products/:id    - Get product by ID');
+  console.log('POST   /products        - Add a new product with image');
+  console.log('PUT    /products/:id    - Update product');
+  console.log('DELETE /products/:id    - Delete product');
+  console.log('----------------------------------------\n');
 });

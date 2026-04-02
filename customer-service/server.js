@@ -1,16 +1,19 @@
 const dns = require('node:dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']); 
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
+const cors = require("cors");
 const swaggerJsdoc = require('swagger-jsdoc');
 const customerController = require('./controllers/customerController');
 const auth = require('./middleware/auth');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const swaggerOptions = {
@@ -19,7 +22,9 @@ const swaggerOptions = {
     info: {
       title: 'Customer API',
       version: '1.0.0',
+      description: 'Customer Management Microservice'
     },
+    servers: [{ url: 'http://localhost:3002' }], 
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -40,8 +45,70 @@ const swaggerOptions = {
         }
       }
     },
+    paths: {
+      '/customers/register': {
+        post: {
+          summary: 'Register a new customer',
+          tags: ['Auth'],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CustomerRequest' }
+              }
+            }
+          },
+          responses: { 201: { description: 'Created' } }
+        }
+      },
+      '/customers/login': {
+        post: {
+          summary: 'User Login',
+          tags: ['Auth'],
+          requestBody: {
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    email: { type: 'string' },
+                    password: { type: 'string' }
+                  }
+                }
+              }
+            }
+          },
+          responses: { 200: { description: 'OK' } }
+        }
+      },
+      '/customers/{id}': {
+        get: {
+          summary: 'Get customer profile',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Success' } }
+        },
+        put: {
+          summary: 'Update customer profile',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CustomerRequest' } } }
+          },
+          responses: { 200: { description: 'Updated' } }
+        },
+        delete: {
+          summary: 'Delete customer account',
+          tags: ['Profile'],
+          security: [{ bearerAuth: [] }],
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'Deleted' } }
+        }
+      }
+    }
   },
-  apis: ['./controllers/customerController.js'], 
+  apis: [], 
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
@@ -53,17 +120,17 @@ mongoose.connect(process.env.MONGO_URI)
 
 
 // PUBLIC ROUTES
-app.post('/customer/register', customerController.register);
-app.post('/customer/login', customerController.login);
+app.post('/customers/register', customerController.register);
+app.post('/customers/login', customerController.login);
 
 // PROTECTED ROUTES
-app.get('/customer/:id', auth, customerController.getProfile);
-app.put('/customer/:id', auth, customerController.updateProfile);
-app.delete('/customer/:id', auth, customerController.deleteCustomer);
+app.get('/customers/:id', auth, customerController.getProfile);
+app.put('/customers/:id', auth, customerController.updateProfile);
+app.delete('/customers/:id', auth, customerController.deleteCustomer);
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'UP' }));
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.CUSTOMER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`🚀 Customer Service active on port ${PORT}`);
   console.log(`📑 Swagger Dashboard: http://localhost:${PORT}/api-docs`);

@@ -2,10 +2,14 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
+const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const swaggerUi = require('swagger-ui-express');
 
 const app = express();
+
+// ========== CORS ==========
+app.use(cors());
 
 // ========== SWAGGER DOCUMENT ==========
 const swaggerDocument = {
@@ -16,6 +20,23 @@ const swaggerDocument = {
     description: 'Central API Gateway — routes to all 5 microservices',
   },
   servers: [{ url: 'http://localhost:3000' }],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
+  tags: [
+    { name: 'Products',          description: 'Product management' },
+    { name: 'Customer Auth',     description: 'Register and login' },
+    { name: 'Customer Profile',  description: 'Protected profile operations' },
+    { name: 'Orders',            description: 'Order management' },
+    { name: 'Payments',          description: 'Payment management' },
+    { name: 'Deliveries',        description: 'Delivery management' },
+  ],
   paths: {
 
     // ── PRODUCTS ──────────────────────────────────────
@@ -85,17 +106,17 @@ const swaggerDocument = {
       },
     },
 
-    // ── CUSTOMERS ─────────────────────────────────────
+    // ── CUSTOMERS — AUTH ──────────────────────────────
     '/customer/register': {
       post: {
         summary: 'Register new customer',
-        tags: ['Customers'],
+        tags: ['Customer Auth'],
         requestBody: {
           content: {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['name', 'email', 'password'],
+                required: ['name', 'email', 'password', 'phone'],
                 properties: {
                   name:     { type: 'string',  example: 'John Doe' },
                   email:    { type: 'string',  example: 'john@example.com' },
@@ -111,8 +132,8 @@ const swaggerDocument = {
     },
     '/customer/login': {
       post: {
-        summary: 'Customer login',
-        tags: ['Customers'],
+        summary: 'Customer login — returns JWT token',
+        tags: ['Customer Auth'],
         requestBody: {
           content: {
             'application/json': {
@@ -127,19 +148,23 @@ const swaggerDocument = {
             },
           },
         },
-        responses: { 200: { description: 'Login successful' } },
+        responses: { 200: { description: 'Login successful — copy the token and paste it into Authorize ↗' } },
       },
     },
+
+    // ── CUSTOMERS — PROFILE (PROTECTED) ───────────────
     '/customer/{id}': {
       get: {
         summary: 'Get customer profile',
-        tags: ['Customers'],
+        tags: ['Customer Profile'],
+        security: [{ bearerAuth: [] }],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'OK' }, 404: { description: 'Not found' } },
+        responses: { 200: { description: 'OK' }, 401: { description: 'Unauthorized — token missing or invalid' }, 404: { description: 'Not found' } },
       },
       put: {
         summary: 'Update customer profile',
-        tags: ['Customers'],
+        tags: ['Customer Profile'],
+        security: [{ bearerAuth: [] }],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: {
           content: {
@@ -147,21 +172,23 @@ const swaggerDocument = {
               schema: {
                 type: 'object',
                 properties: {
-                  name:  { type: 'string' },
-                  email: { type: 'string' },
-                  phone: { type: 'string' },
+                  name:     { type: 'string' },
+                  email:    { type: 'string' },
+                  phone:    { type: 'string' },
+                  password: { type: 'string' },
                 },
               },
             },
           },
         },
-        responses: { 200: { description: 'Updated' } },
+        responses: { 200: { description: 'Updated' }, 401: { description: 'Unauthorized — token missing or invalid' } },
       },
       delete: {
         summary: 'Delete customer',
-        tags: ['Customers'],
+        tags: ['Customer Profile'],
+        security: [{ bearerAuth: [] }],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Deleted' } },
+        responses: { 200: { description: 'Deleted' }, 401: { description: 'Unauthorized — token missing or invalid' } },
       },
     },
 
@@ -182,8 +209,8 @@ const swaggerDocument = {
                 type: 'object',
                 required: ['customerId', 'productId', 'quantity'],
                 properties: {
-                  customerId: { type: 'string', example: '664f1b2c9e1a2b3c4d5e6f7a' },
-                  productId:  { type: 'string', example: '664f1b2c9e1a2b3c4d5e6f7b' },
+                  customerId: { type: 'string',  example: '664f1b2c9e1a2b3c4d5e6f7a' },
+                  productId:  { type: 'string',  example: '664f1b2c9e1a2b3c4d5e6f7b' },
                   quantity:   { type: 'integer', example: 2 },
                   totalPrice: { type: 'number',  example: 2400 },
                   status:     { type: 'string',  example: 'pending' },
@@ -245,10 +272,11 @@ const swaggerDocument = {
                 type: 'object',
                 required: ['orderId', 'amount'],
                 properties: {
-                  orderId: { type: 'string', example: '664f1b2c9e1a2b3c4d5e6f7c' },
-                  amount:  { type: 'number', example: 2400 },
-                  method:  { type: 'string', example: 'card' },
-                  status:  { type: 'string', example: 'paid' },
+                  orderId:  { type: 'integer', example: 1 },
+                  amount:   { type: 'number',  example: 2400 },
+                  currency: { type: 'string',  example: 'USD' },
+                  method:   { type: 'string',  enum: ['CARD', 'WALLET', 'BANK_TRANSFER', 'CASH'], example: 'CARD' },
+                  status:   { type: 'string',  enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'], example: 'PENDING' },
                 },
               },
             },
@@ -265,7 +293,7 @@ const swaggerDocument = {
         responses: { 200: { description: 'OK' }, 404: { description: 'Not found' } },
       },
       put: {
-        summary: 'Update payment status',
+        summary: 'Update payment by ID',
         tags: ['Payments'],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: {
@@ -274,19 +302,57 @@ const swaggerDocument = {
               schema: {
                 type: 'object',
                 properties: {
-                  status: { type: 'string', example: 'refunded' },
+                  orderId:  { type: 'integer' },
+                  amount:   { type: 'number' },
+                  currency: { type: 'string',  example: 'USD' },
+                  method:   { type: 'string',  enum: ['CARD', 'WALLET', 'BANK_TRANSFER', 'CASH'] },
+                  status:   { type: 'string',  enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'] },
                 },
               },
             },
           },
         },
-        responses: { 200: { description: 'Updated' } },
+        responses: { 200: { description: 'Updated' }, 404: { description: 'Not found' } },
       },
       delete: {
         summary: 'Delete payment',
         tags: ['Payments'],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-        responses: { 200: { description: 'Deleted' } },
+        responses: { 200: { description: 'Deleted' }, 404: { description: 'Not found' } },
+      },
+    },
+    '/payments/order/{orderId}': {
+      get: {
+        summary: 'Get payments by order ID',
+        tags: ['Payments'],
+        parameters: [{ name: 'orderId', in: 'path', required: true, schema: { type: 'integer' }, example: 1 }],
+        responses: { 200: { description: 'OK' }, 404: { description: 'No payments found for this order' } },
+      },
+      put: {
+        summary: 'Update payment(s) by order ID',
+        tags: ['Payments'],
+        parameters: [{ name: 'orderId', in: 'path', required: true, schema: { type: 'integer' }, example: 1 }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  status:   { type: 'string', enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'] },
+                  currency: { type: 'string', example: 'USD' },
+                  method:   { type: 'string', enum: ['CARD', 'WALLET', 'BANK_TRANSFER', 'CASH'] },
+                },
+              },
+            },
+          },
+        },
+        responses: { 200: { description: 'Updated' }, 404: { description: 'No payments found for this order' } },
+      },
+      delete: {
+        summary: 'Delete payment(s) by order ID',
+        tags: ['Payments'],
+        parameters: [{ name: 'orderId', in: 'path', required: true, schema: { type: 'integer' }, example: 1 }],
+        responses: { 200: { description: 'Deleted' }, 404: { description: 'No payments found for this order' } },
       },
     },
 
@@ -324,7 +390,7 @@ const swaggerDocument = {
       get: {
         summary: 'Get delivery by ID',
         tags: ['Deliveries'],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } },],
         responses: { 200: { description: 'OK' }, 404: { description: 'Not found' } },
       },
       put: {
@@ -360,10 +426,11 @@ const swaggerDocument = {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // ========== PROXY ROUTES ==========
-// ✅ Only base URL in target — path is forwarded automatically
+
 app.use('/products', createProxyMiddleware({
   target: 'http://localhost:3001',
   changeOrigin: true,
+  pathRewrite: (path) => '/products' + path,
   on: {
     error: (err, req, res) => {
       res.status(503).json({ message: 'Product Service unavailable', error: err.message });
@@ -374,6 +441,7 @@ app.use('/products', createProxyMiddleware({
 app.use('/customer', createProxyMiddleware({
   target: 'http://localhost:3002',
   changeOrigin: true,
+  pathRewrite: (path) => '/customers' + path,
   on: {
     error: (err, req, res) => {
       res.status(503).json({ message: 'Customer Service unavailable', error: err.message });
@@ -384,6 +452,7 @@ app.use('/customer', createProxyMiddleware({
 app.use('/orders', createProxyMiddleware({
   target: 'http://localhost:3003',
   changeOrigin: true,
+  pathRewrite: (path) => '/orders' + path,
   on: {
     error: (err, req, res) => {
       res.status(503).json({ message: 'Order Service unavailable', error: err.message });
@@ -394,6 +463,7 @@ app.use('/orders', createProxyMiddleware({
 app.use('/payments', createProxyMiddleware({
   target: 'http://localhost:3004',
   changeOrigin: true,
+  pathRewrite: (path) => '/payments' + path,
   on: {
     error: (err, req, res) => {
       res.status(503).json({ message: 'Payment Service unavailable', error: err.message });
@@ -404,6 +474,7 @@ app.use('/payments', createProxyMiddleware({
 app.use('/deliveries', createProxyMiddleware({
   target: 'http://localhost:3005',
   changeOrigin: true,
+  pathRewrite: (path) => '/deliveries' + path,
   on: {
     error: (err, req, res) => {
       res.status(503).json({ message: 'Delivery Service unavailable', error: err.message });
@@ -433,7 +504,7 @@ app.listen(PORT, () => {
   console.log(`📄 Swagger UI at     http://localhost:${PORT}/api-docs`);
   console.log('\n📌 Routes:');
   console.log('   /products   → http://localhost:3001');
-  console.log('   /customer   → http://localhost:3002');
+  console.log('   /customer   → http://localhost:3002  (rewritten to /customers)');
   console.log('   /orders     → http://localhost:3003');
   console.log('   /payments   → http://localhost:3004');
   console.log('   /deliveries → http://localhost:3005');

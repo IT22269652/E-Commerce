@@ -1,0 +1,29 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Users\JIMUTHA\AppData\Roaming\npm\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.6.0
+2 info using node@v22.18.0
+3 silly config load:file:C:\Users\JIMUTHA\AppData\Roaming\npm\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\JIMUTHA\Desktop\ecom\E-Commerce\delivery-service\.npmrc
+5 silly config load:file:C:\Users\JIMUTHA\.npmrc
+6 silly config load:file:C:\Users\JIMUTHA\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm init
+8 verbose argv "init" "--yes"
+9 verbose logfile logs-max:10 dir:C:\Users\JIMUTHA\Desktop\ecom\E-Commerce\delivery-service\UsersJIMUTHAnpm-cache\_logs\2026-03-31T06_18_32_054Z-
+10 verbose logfile C:\Users\JIMUTHA\Desktop\ecom\E-Commerce\delivery-service\UsersJIMUTHAnpm-cache\_logs\2026-03-31T06_18_32_054Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly package data {
+12 silly package data   name: 'delivery-service',
+12 silly package data   version: '1.0.0',
+12 silly package data   description: '',
+12 silly package data   main: 'index.js',
+12 silly package data   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+12 silly package data   keywords: [],
+12 silly package data   author: '',
+12 silly package data   license: 'ISC',
+12 silly package data   type: 'commonjs'
+12 silly package data }
+13 verbose cwd C:\Users\JIMUTHA\Desktop\ecom\E-Commerce\delivery-service
+14 verbose os Windows_NT 10.0.26200
+15 verbose node v22.18.0
+16 verbose npm  v11.6.0
+17 verbose exit 0
+18 info ok
